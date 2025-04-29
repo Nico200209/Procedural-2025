@@ -1,72 +1,117 @@
 ﻿using UnityEngine;
 
-namespace Demo {
-    public class GridCity : MonoBehaviour {
-        [Header("Grid Settings")]
-        public int rows = 10, columns = 10;
-        public float rowWidth = 10, columnWidth = 10;
+namespace Demo
+{
+    public class GridCity : MonoBehaviour
+    {
+        [Header("Triangle Grid Settings")]
+        [Tooltip("Number of rows (height) of the triangle)")]
+        public int rows = 10;
+        [Tooltip("Number of columns (max width) of the triangle)")]
+        public int columns = 10;
+        public float rowWidth = 10f;
+        public float columnWidth = 10f;
 
-        [Header("Prefabs & Delay")]
-        public GameObject[] buildingPrefabs;
+        [Header("Building Prefab & Delay")]
+        [Tooltip("Your procedural building prefab (must have SimpleBuilding)")]
+        public GameObject buildingPrefab;
         public float buildDelaySeconds = 0.1f;
 
-        [Header("Neighborhood Style")]
+        [Header("Neighborhood Style (optional)")]
         public BuildingStyle style;
 
-        // Clears all existing buildings
-        public void Clear() {
-            for (int i = transform.childCount - 1; i >= 0; i--) {
+        [Header("Outline Settings")]
+        [Tooltip("If true, only the border (outline) of the triangle is built; interior is empty.")]
+        public bool borderOnly = false;
+
+        /// <summary>
+        /// Clears all existing buildings.
+        /// </summary>
+        public void Clear()
+        {
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
                 DestroyImmediate(transform.GetChild(i).gameObject);
             }
         }
 
-        // Full grid rebuild
-        public void Regenerate() {
+        /// <summary>
+        /// Builds the triangle (border or filled depending on borderOnly).
+        /// </summary>
+        public void Regenerate()
+        {
             Clear();
-            SpawnBuildings(rows * columns);
-        }
 
-        // Spawns exactly `count` buildings at random grid positions
-        public void SpawnBuildings(int count) {
-            for (int i = 0; i < count; i++) {
-                // random grid cell
-                int r = Random.Range(0, rows);
-                int c = Random.Range(0, columns);
+            for (int r = 0; r < rows; r++)
+            {
+                // how many in this row
+                int countThisRow = Mathf.Min(r + 1, columns);
+                // center each row
+                float rowWidthWorld = (countThisRow - 1) * columnWidth;
+                float xOffset = -rowWidthWorld * 0.5f;
 
-                var prefab = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
-                var go = Instantiate(prefab, transform);
-                go.transform.localPosition = new Vector3(c * columnWidth, 0, r * rowWidth);
+                for (int c = 0; c < countThisRow; c++)
+                {
+                    // if borderOnly, skip interior cells
+                    if (borderOnly)
+                    {
+                        bool isTop = (r == 0);
+                        bool isBase = (r == rows - 1);
+                        bool isLeft = (c == 0);
+                        bool isRight = (c == countThisRow - 1);
+                        if (!(isTop || isBase || isLeft || isRight))
+                        {
+                            continue;
+                        }
+                    }
 
-                // initialize and generate grammar
-                var sb = go.GetComponent<SimpleBuilding>();
-                Shape shape = sb != null ? (Shape)sb : go.GetComponent<Shape>();
-
-                if (sb != null && style != null) {
-                    sb.Initialize(
-                        -1,
-                        style.stockHeight,
-                        0,
-                        style.stockPrefabs,
-                        style.roofPrefabs
+                    // compute world position
+                    Vector3 pos = new Vector3(
+                        xOffset + c * columnWidth,
+                        0f,
+                        r * rowWidth
                     );
-                    sb.minHeight = style.minHeight;
-                    sb.maxHeight = style.maxHeight;
-                }
 
-                if (shape != null) {
-                    shape.Generate(buildDelaySeconds);
+                    // spawn prefab
+                    var go = Instantiate(buildingPrefab, pos, Quaternion.identity, transform);
+
+                    // override style if any
+                    var sb = go.GetComponent<SimpleBuilding>();
+                    Shape shape = sb != null ? (Shape)sb : go.GetComponent<Shape>();
+
+                    if (sb != null && style != null)
+                    {
+                        sb.Initialize(
+                            -1,
+                            style.stockHeight,
+                            0,
+                            style.stockPrefabs,
+                            style.roofPrefabs
+                        );
+                        sb.minHeight = style.minHeight;
+                        sb.maxHeight = style.maxHeight;
+                    }
+
+                    // always generate
+                    if (shape != null)
+                    {
+                        shape.Generate(buildDelaySeconds);
+                    }
                 }
             }
         }
 
-        // Auto-build entire grid on Play
-        void Start() {
+        // Auto-build on Play
+        void Start()
+        {
             if (Application.isPlaying) Regenerate();
         }
 
-        // Press G in play to rebuild full grid
-        void Update() {
-            if (Application.isPlaying && Input.GetKeyDown(KeyCode.G)) {
+        // Press G in Play to rebuild
+        void Update()
+        {
+            if (Application.isPlaying && Input.GetKeyDown(KeyCode.G))
+            {
                 Regenerate();
             }
         }

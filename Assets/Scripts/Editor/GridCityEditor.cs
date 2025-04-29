@@ -8,9 +8,9 @@ public class GridCityEditor : Editor
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
+        EditorGUILayout.Space();
 
         var city = (GridCity)target;
-        EditorGUILayout.Space();
 
         if (Application.isPlaying)
         {
@@ -27,7 +27,7 @@ public class GridCityEditor : Editor
         }
         else
         {
-            EditorGUILayout.HelpBox("Enter Play mode to clear or regenerate the city.", MessageType.Info);
+            EditorGUILayout.HelpBox("Enter Play mode to use Clear/Regenerate.", MessageType.Info);
         }
     }
 }
