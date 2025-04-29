@@ -12,7 +12,9 @@ namespace Demo {
 
 		public float buildDelaySeconds = 0.1f;
 
-		void Start() {
+        public BuildingStyle style;
+
+        void Start() {
 			Generate();
 		}
 
@@ -39,12 +41,24 @@ namespace Demo {
 					// Place it in the grid:
 					newBuilding.transform.localPosition = new Vector3(col * columnWidth, 0, row*rowWidth);
 
-					// If the building has a Shape (grammar) component, launch the grammar:
-					Shape shape = newBuilding.GetComponent<Shape>();
-					if (shape!=null) {
-						shape.Generate(buildDelaySeconds);
-					}
-				}
+                    // If the building has a Shape (grammar) component, launch the grammar:
+                    SimpleBuilding sb = newBuilding.GetComponent<SimpleBuilding>();
+                    if (sb != null && style != null)
+                    {
+                        sb.Initialize(-1, style.stockHeight, 0, style.stockPrefabs, style.roofPrefabs);
+                        sb.minHeight = style.minHeight;
+                        sb.maxHeight = style.maxHeight;
+                        sb.Generate(buildDelaySeconds);
+                    }
+                    else
+                    {
+                        Shape shape = newBuilding.GetComponent<Shape>();
+                        if (shape != null)
+                        {
+                            shape.Generate(buildDelaySeconds);
+                        }
+                    }
+                }
 			}
 		}
 	}
