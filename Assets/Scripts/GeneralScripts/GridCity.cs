@@ -1,51 +1,74 @@
-﻿// Version 2023
-//  (Updates: supports different root positions)
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Demo {
-	public class GridCity : MonoBehaviour {
-		public int rows = 10;
-		public int columns = 10;
-		public int rowWidth = 10;
-		public int columnWidth = 10;
-		public GameObject[] buildingPrefabs;
+    public class GridCity : MonoBehaviour {
+        [Header("Grid Settings")]
+        public int rows = 10, columns = 10;
+        public float rowWidth = 10, columnWidth = 10;
 
-		public float buildDelaySeconds = 0.1f;
+        [Header("Prefabs & Delay")]
+        public GameObject[] buildingPrefabs;
+        public float buildDelaySeconds = 0.1f;
 
-		void Start() {
-			Generate();
-		}
+        [Header("Neighborhood Style")]
+        public BuildingStyle style;
 
-		void Update() {
-			if (Input.GetKeyDown(KeyCode.G)) {
-				DestroyChildren();
-				Generate();
-			}
-		}
+        // Clears all existing buildings
+        public void Clear() {
+            for (int i = transform.childCount - 1; i >= 0; i--) {
+                DestroyImmediate(transform.GetChild(i).gameObject);
+            }
+        }
 
-		void DestroyChildren() {
-			for (int i = 0; i<transform.childCount; i++) {
-				Destroy(transform.GetChild(i).gameObject);
-			}
-		}
+        // Full grid rebuild
+        public void Regenerate() {
+            Clear();
+            SpawnBuildings(rows * columns);
+        }
 
-		void Generate() {
-			for (int row = 0; row<rows; row++) {
-				for (int col = 0; col<columns; col++) {
-					// Create a new building, chosen randomly from the prefabs:
-					int buildingIndex = Random.Range(0, buildingPrefabs.Length);
-					GameObject newBuilding = Instantiate(buildingPrefabs[buildingIndex], transform);
+        // Spawns exactly `count` buildings at random grid positions
+        public void SpawnBuildings(int count) {
+            for (int i = 0; i < count; i++) {
+                // random grid cell
+                int r = Random.Range(0, rows);
+                int c = Random.Range(0, columns);
 
-					// Place it in the grid:
-					newBuilding.transform.localPosition = new Vector3(col * columnWidth, 0, row*rowWidth);
+                var prefab = buildingPrefabs[Random.Range(0, buildingPrefabs.Length)];
+                var go = Instantiate(prefab, transform);
+                go.transform.localPosition = new Vector3(c * columnWidth, 0, r * rowWidth);
 
-					// If the building has a Shape (grammar) component, launch the grammar:
-					Shape shape = newBuilding.GetComponent<Shape>();
-					if (shape!=null) {
-						shape.Generate(buildDelaySeconds);
-					}
-				}
-			}
-		}
-	}
+                // initialize and generate grammar
+                var sb = go.GetComponent<SimpleBuilding>();
+                Shape shape = sb != null ? (Shape)sb : go.GetComponent<Shape>();
+
+                if (sb != null && style != null) {
+                    sb.Initialize(
+                        -1,
+                        style.stockHeight,
+                        0,
+                        style.stockPrefabs,
+                        style.roofPrefabs
+                    );
+                    sb.minHeight = style.minHeight;
+                    sb.maxHeight = style.maxHeight;
+                }
+
+                if (shape != null) {
+                    shape.Generate(buildDelaySeconds);
+                }
+            }
+        }
+
+        // Auto-build entire grid on Play
+        void Start() {
+            if (Application.isPlaying) Regenerate();
+        }
+
+        // Press G in play to rebuild full grid
+        void Update() {
+            if (Application.isPlaying && Input.GetKeyDown(KeyCode.G)) {
+                Regenerate();
+            }
+        }
+    }
 }
