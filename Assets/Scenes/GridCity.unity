@@ -390,13 +390,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rows: 15
-  columns: 8
-  rowWidth: 3
-  columnWidth: 3
+  columns: 15
+  rowWidth: 2
+  columnWidth: 2
   buildingPrefab: {fileID: 3604920485432597347, guid: fee6c2ac503a81e4cb074a72365b79d0,
     type: 3}
   buildDelaySeconds: 0.1
   style: {fileID: 0}
+  monumentPrefab: {fileID: 4977362457285617005, guid: ee7ae2596ddf3924da8d647fe05fb617,
+    type: 3}
   borderOnly: 1
 --- !u!4 &1087066582
 Transform:
@@ -602,11 +604,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   straightTilePrefab: {fileID: -927199367670048503, guid: 20ce4895fadfac84d827e8a2db9526f6,
     type: 3}
-  points:
-  - {x: 22.03123, y: 8.065053e-17, z: -1.7930603}
-  - {x: 23.24049, y: 7.0194375e-17, z: 1.0323601}
-  - {x: 24.56873, y: 6.230994e-17, z: 3.162859}
-  - {x: 23.82116, y: 3.6738337e-17, z: 10.072715}
+  points: []
 --- !u!4 &1456508915
 Transform:
   m_ObjectHideFlags: 0

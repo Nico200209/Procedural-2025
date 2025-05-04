@@ -20,6 +20,9 @@ namespace Demo
         [Header("Neighborhood Style (optional)")]
         public BuildingStyle style;
 
+        [Tooltip("Central monument prefab (optional)")]
+        public GameObject monumentPrefab;
+
         [Header("Outline Settings")]
         [Tooltip("If true, only the border (outline) of the triangle is built; interior is empty.")]
         public bool borderOnly = false;
@@ -99,6 +102,42 @@ namespace Demo
                     }
                 }
             }
+            if (monumentPrefab != null)
+            {
+                Vector3 sum = Vector3.zero;
+                int count = 0;
+
+                for (int r = 0; r < rows; r++)
+                {
+                    int countThisRow = Mathf.Min(r + 1, columns);
+                    float rowWidthWorld = (countThisRow - 1) * columnWidth;
+                    float xOffset = -rowWidthWorld * 0.5f;
+
+                    for (int c = 0; c < countThisRow; c++)
+                    {
+                        if (borderOnly)
+                        {
+                            bool isTop = (r == 0);
+                            bool isBase = (r == rows - 1);
+                            bool isLeft = (c == 0);
+                            bool isRight = (c == countThisRow - 1);
+                            if (!(isTop || isBase || isLeft || isRight)) continue;
+                        }
+
+                        Vector3 pos = new Vector3(xOffset + c * columnWidth, 0f, r * rowWidth);
+                        sum += pos;
+                        count++;
+                    }
+                }
+
+                if (monumentPrefab != null && count > 0)
+                {
+                    Vector3 average = sum / count;
+                    Instantiate(monumentPrefab, average, Quaternion.identity, transform);
+                }
+
+            }
+
         }
 
         // Auto-build on Play
